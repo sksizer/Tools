@@ -30,6 +30,11 @@ def git_add_and_commit():
     commit_message = input("Enter a commit message: ")
     subprocess.run(['git', 'commit', '-m', commit_message], check=True)
 
+    # Prompt to push the commit
+    push_answer = input("Do you want to push the commit to origin? [y/N]: ").strip().lower()
+    if push_answer == 'y':
+        subprocess.run(['git', 'push', 'origin'], check=True)
+
 if __name__ == '__main__':
     copy_dev_tools()
     git_add_and_commit()
