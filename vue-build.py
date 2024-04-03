@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sys
 import os, json, re
 import sys
 import shutil
@@ -10,7 +11,7 @@ def camel_case_to_title(camel_str):
     return ' '.join(word.capitalize() for word in words)
 
 def title_from_path(path):
-    parts = path.parts[path.parts.index('dev')+1:-1]  # Get all parts after 'dev' and before the file name
+    parts = path.parts[path.parts.index('pages')+1:-1]  # Get all parts after 'pages' and before the file name
     title_parts = [camel_case_to_title(part) for part in parts]  # Convert camel case to title
     script_dir = os.path.dirname(os.path.realpath(__file__))
     dev_dir = Path(script_dir) / 'pages/dev'
@@ -31,7 +32,7 @@ def title_from_path(path):
 
 def update_vue_links():
     script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    dev_dir = Path(script_dir) / 'pages/dev'
+    dev_dir = Path(script_dir) / 'test/nuxt/pages'
     json_file = os.path.join(script_dir, 'public/component-links.json')
 
     # Initialize an empty list for vue links
@@ -55,7 +56,7 @@ def copy_vue_templates():
     template_dir = Path(__file__).resolve().parent / 'vue/template'
     web_dir = template_dir.parents[2]
 
-    for item in template_dir.rglob('*'):
+    for item in template_dir.rglob('*.[!html]*'):
         relative_path = item.relative_to(template_dir)
         dest = web_dir / relative_path
 
@@ -64,11 +65,15 @@ def copy_vue_templates():
         else:
             shutil.copy2(item, dest)
 
-def main(target_dir):
+def main():
     copy_vue_templates(target_dir)
     update_vue_links(target_dir)
     print(f"Vue component link update complete for {target_dir}.")
 
 if __name__ == '__main__':
-    target_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
-    main(target_dir)
+    if len(sys.argv) > 1:
+        target_dir = Path(sys.argv[1])
+        copy_vue_templates(target_dir)
+        update_vue_links(target_dir)
+    else:
+        main()
