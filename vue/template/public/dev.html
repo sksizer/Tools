@@ -5,21 +5,21 @@
     <title>Dev Links</title>
   </head>
   <body>
-    <h1 class="text-3xl font-bold underline text-center my-8">My Links</h1>
+    <h1 class="text-3xl font-bold underline text-center my-8">Dev Pages</h1>
 
-    <ul id="components-links" class="list-disc list-inside m-4 p-4 bg-gray-100 rounded-lg"></ul>
+    <ul id="dev-pages" class="list-disc list-inside m-4 p-4 bg-gray-100 rounded-lg"></ul>
 
     <script>
       var suffix = '?mode=4';
 
       // Load JSON data structure from an external file
-      fetch('component-links.json')
+      fetch('dev_pages.json')
         .then(function (response) {
           return response.json();
         })
         .then(function (componentLinks) {
           // Render the list of hyperlinks
-          var linksList = document.getElementById('components-links');
+          var linksList = document.getElementById('dev-pages');
           componentLinks.forEach(function (link) {
             var listItem = document.createElement('li');
             listItem.classList.add('mb-2');

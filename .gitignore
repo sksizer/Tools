@@ -164,7 +164,10 @@ cython_debug/
 test/nuxt/node_modules
 test/nuxt/dist
 test/nuxt/.nuxt
-test/nuxt/.output   
+test/nuxt/.output
+test/nuxt/public/dev.html
+test/nuxt/public/dev_pages.json
+
 
 # Aider
 .aider*

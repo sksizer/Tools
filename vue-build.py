@@ -1,79 +1,74 @@
-#!/usr/bin/env python3
+import os
 import sys
-import os, json, re
-import sys
+import json
 import shutil
 from pathlib import Path
 
-def camel_case_to_title(camel_str):
-    # Split camelCase and PascalCase into words and capitalize them
-    words = re.sub('([a-z0-9])([A-Z])', r'\1 \2', camel_str).split()
-    return ' '.join(word.capitalize() for word in words)
+def find_vue_files(directory):
+    """
+    Recursively find all .vue files in the specified directory.
+    """
+    vue_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".vue"):
+                relative_path = os.path.relpath(os.path.join(root, file), directory)
+                vue_files.append(relative_path.replace(os.path.sep, '/'))
+    return vue_files
 
-def title_from_path(path):
-    parts = path.parts[path.parts.index('pages')+1:-1]  # Get all parts after 'pages' and before the file name
-    title_parts = [camel_case_to_title(part) for part in parts]  # Convert camel case to title
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    dev_dir = Path(script_dir) / 'pages/dev'
-    public_dir = Path(script_dir) / 'public'
-    json_file = os.path.join(public_dir, 'component-links.json')
+def generate_json(vue_files):
+    """
+    Generate a JSON object from the list of Vue files, formatting names as specified.
+    """
+    data = []
+    for file in vue_files:
+        # Split the path into parts
+        parts = file.split('/')
+        # Remove the '.vue' extension and replace underscores with spaces for the file name
+        file_name = parts[-1][:-4].replace('_', ' ').title()
+        # Capitalize and format directory names, replace underscores with spaces
+        directory_names = [part.replace('_', ' ').title() for part in parts[:-1]]
+        # Combine directory names and file name
+        name = " - ".join(directory_names + [file_name])
+        # Construct the URL
+        url = "/dev/" + "/".join(parts).replace('.vue', '')
+        # Append the formatted data
+        data.append({"name": name, "url": url})
+    return json.dumps(data, indent=4)
 
-    # Ensure the JSON file exists
-    os.makedirs(public_dir, exist_ok=True)
-    if not os.path.exists(json_file):
-        with open(json_file, 'w') as file:
-            json.dump([], file)
+def copy_template(source, target):
+    """
+    Copy the template file from source to target directory, overwriting any existing file.
+    """
+    shutil.copyfile(source, target)  # Adjusted to explicitly use copyfile for clarity
 
-def title_from_path(path):
-    parts = path.parts[path.parts.index('pages')+1:-1]  # Get all parts after 'pages' and before the file name
-    title_parts = [camel_case_to_title(part) for part in parts]  # Convert camel case to title
-    title_parts.append(camel_case_to_title(path.stem))  # Add the file name (without extension) as the last part
-    return ' - '.join(title_parts)
-
-def update_vue_links():
-    script_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    dev_dir = Path(script_dir) / 'test/nuxt/pages'
-    json_file = os.path.join(script_dir, 'public/component-links.json')
-
-    # Initialize an empty list for vue links
-    vue_links = []
-
-    # Scan for .vue files in the dev directory and subdirectories
-    for vue_file in dev_dir.rglob('*.vue'):
-        title = title_from_path(vue_file.relative_to(script_dir))
-        url = f'/{vue_file.relative_to(dev_dir.parent).as_posix()}'.replace('.vue', '').replace(' ', '-')
-        vue_links.append({'name': title or 'Unnamed Component', 'url': url})
-
-    vue_links.sort(key=lambda x: x['name'])
-    # Write updated components back to the JSON file
-    with open(json_file, 'w') as file:
-        json.dump(vue_links, file, indent=2)
-
-if __name__ == '__main__':
-    print("Vue component link update complete.")
-
-def copy_vue_templates():
-    template_dir = Path(__file__).resolve().parent / 'vue/template'
-    web_dir = template_dir.parents[2]
-
-    for item in template_dir.rglob('*.[!html]*'):
-        relative_path = item.relative_to(template_dir)
-        dest = web_dir / relative_path
-
-        if item.is_dir():
-            os.makedirs(dest, exist_ok=True)
-        else:
-            shutil.copy2(item, dest)
-
-def main():
-    copy_vue_templates(target_dir)
-    update_vue_links(target_dir)
-    print(f"Vue component link update complete for {target_dir}.")
-
-if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        target_dir = Path(sys.argv[1])
-        copy_vue_templates(target_dir)
-        update_vue_links(target_dir)
+def main(target_directory=None):
+    if target_directory is None:
+        target_directory = os.getcwd()
     else:
-        main()
+        target_directory = Path(target_directory).resolve()
+
+    source_directory = Path(__file__).parent
+    template_source = source_directory / "vue/template/public/dev.html"
+    template_target = target_directory / "public/dev.html"
+
+    # Copy the template file
+    copy_template(template_source, template_target)
+
+    # Find all Vue files
+    vue_files_directory = target_directory / "pages/dev"
+    vue_files = find_vue_files(vue_files_directory)
+
+    # Generate JSON
+    json_data = generate_json(vue_files)
+
+    # Write JSON to file in the target/public directory
+    json_file_path = target_directory / "public/dev_pages.json"
+    with open(json_file_path, "w") as json_file:
+        json_file.write(json_data)
+
+    print(f"JSON file generated successfully at {json_file_path}.")
+
+if __name__ == "__main__":
+    target_dir = sys.argv[1] if len(sys.argv) > 1 else None
+    main(target_dir)
