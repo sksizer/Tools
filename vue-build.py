@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import shutil
+import re  # Import the regex module
 from pathlib import Path
 
 def find_vue_files(directory):
@@ -17,6 +18,27 @@ def find_vue_files(directory):
                 vue_files.append(relative_path.replace(os.path.sep, '/'))
     return vue_files
 
+def split_camel_case(name):
+    """
+    Split a camelCase or CamelCase string into words.
+    """
+    matches = re.finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', name)
+    return [m.group(0) for m in matches]
+
+def format_name(file_name):
+    """
+    Format the file name by handling underscores and camelCase as word breaks.
+    """
+    # Replace underscores with spaces and split on space to handle underscores
+    parts = file_name.replace('_', ' ').split(' ')
+    formatted_parts = []
+    for part in parts:
+        # For each part, further split on camelCase boundaries and capitalize each word
+        camel_case_parts = split_camel_case(part)
+        formatted_parts.extend(camel_case_parts)
+    # Capitalize each word and join with spaces
+    return ' '.join(word.capitalize() for word in formatted_parts)
+
 def generate_json(vue_files):
     """
     Generate a JSON object from the list of Vue files, formatting names as specified.
@@ -25,12 +47,14 @@ def generate_json(vue_files):
     for file in vue_files:
         # Split the path into parts
         parts = file.split('/')
-        # Remove the '.vue' extension and replace underscores with spaces for the file name
-        file_name = parts[-1][:-4].replace('_', ' ').title()
+        # Remove the '.vue' extension for the file name
+        file_name = parts[-1][:-4]
+        # Format the file name to handle underscores and camelCase
+        formatted_file_name = format_name(file_name)
         # Capitalize and format directory names, replace underscores with spaces
-        directory_names = [part.replace('_', ' ').title() for part in parts[:-1]]
-        # Combine directory names and file name
-        name = " - ".join(directory_names + [file_name])
+        directory_names = [format_name(part) for part in parts[:-1]]
+        # Combine directory names and formatted file name
+        name = " - ".join(directory_names + [formatted_file_name])
         # Construct the URL
         url = "/dev/" + "/".join(parts).replace('.vue', '')
         # Append the formatted data
@@ -41,7 +65,7 @@ def copy_template(source, target):
     """
     Copy the template file from source to target directory, overwriting any existing file.
     """
-    shutil.copyfile(source, target)  # Adjusted to explicitly use copyfile for clarity
+    shutil.copyfile(source, target)
 
 def main(target_directory=None):
     if target_directory is None:
