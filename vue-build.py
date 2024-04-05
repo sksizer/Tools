@@ -90,14 +90,27 @@ def main(target_directory=None):
     vue_files = find_vue_files(vue_files_directory)
 
     # Generate JSON
-    json_data = generate_json(vue_files)
+    new_json_data = generate_json(vue_files)
 
-    # Write JSON to file in the target/public directory
+    # Path to the JSON file in the target/public directory
     json_file_path = target_directory / "public/dev_pages.json"
-    with open(json_file_path, "w") as json_file:
-        json_file.write(json_data)
 
-    print(f"JSON file generated successfully at {json_file_path}.")
+    # Check if the file exists and compare content
+    if json_file_path.exists():
+        with open(json_file_path, "r") as json_file:
+            existing_json_data = json_file.read()
+        # Only write if the data has changed
+        if existing_json_data != new_json_data:
+            with open(json_file_path, "w") as json_file:
+                json_file.write(new_json_data)
+            print(f"JSON file updated successfully at {json_file_path}.")
+        else:
+            print("No changes detected in JSON data. File not updated.")
+    else:
+        # If the file doesn't exist, write the new data
+        with open(json_file_path, "w") as json_file:
+            json_file.write(new_json_data)
+        print(f"JSON file generated successfully at {json_file_path}.")
 
 if __name__ == "__main__":
     target_dir = sys.argv[1] if len(sys.argv) > 1 else None
