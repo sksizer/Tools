@@ -41,7 +41,8 @@ def format_name(file_name):
 
 def generate_json(vue_files):
     """
-    Generate a JSON object from the list of Vue files, formatting names as specified.
+    Generate a JSON object from the list of Vue files, formatting names as specified,
+    and ensure the entries are ordered alphabetically by name.
     """
     data = []
     for file in vue_files:
@@ -59,7 +60,11 @@ def generate_json(vue_files):
         url = "/dev/" + "/".join(parts).replace('.vue', '')
         # Append the formatted data
         data.append({"name": name, "url": url})
-    return json.dumps(data, indent=4)
+
+    # Sort the data list by the 'name' key of each dictionary
+    sorted_data = sorted(data, key=lambda x: x['name'])
+
+    return json.dumps(sorted_data, indent=4)
 
 def copy_template(source, target):
     """
@@ -69,7 +74,7 @@ def copy_template(source, target):
 
 def main(target_directory=None):
     if target_directory is None:
-        target_directory = os.getcwd()
+        target_directory = Path(os.getcwd())
     else:
         target_directory = Path(target_directory).resolve()
 
