@@ -1,0 +1,11 @@
+patterns:
+  - name: 'console'
+    pattern: 'console'
+    include:
+      - 'code/**/*.ts'
+      - 'code/**/*.vue'
+    exclude:
+      - 'node_modules'
+      - '.nuxt'
+      - 'dist'
+      - '.output'
