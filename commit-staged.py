@@ -45,7 +45,7 @@ def generate_commit_message(diff):
 
     The initial narrative should set the context, while the bulleted list (if 
     applicable) breaks down the specifics, ensuring the message is informative 
-    and organized.
+    and organized. Emphasize brevity and clarity throughout the message.
     """
 
     courtesy = """
