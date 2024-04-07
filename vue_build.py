@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Module docstring: This module performs some additional dev build tasks for a vue project."""
 import os
 import sys
 import json
@@ -11,7 +12,7 @@ def find_vue_files(directory):
     Recursively find all .vue files in the specified directory.
     """
     vue_files = []
-    for root, dirs, files in os.walk(directory):
+    for root, _dirs, files in os.walk(directory):
         for file in files:
             if file.endswith(".vue"):
                 relative_path = os.path.relpath(os.path.join(root, file), directory)

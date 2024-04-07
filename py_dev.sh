@@ -3,7 +3,7 @@
 source "$(dirname "$0")/common.sh"
 
 # Execute the Python script, passing along any command line arguments
-python "$SCRIPT_DIR/commit-staged.py" "$@"
+python "$SCRIPT_DIR/py_dev.py" "$@"
 
 # Capture the exit code of the Python script
 PYTHON_EXIT_CODE=$?
