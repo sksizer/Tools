@@ -1,13 +1,29 @@
 import subprocess
 import openai
 import os
+import yaml
 from openai import Client
+
+# Default token threshold
+TOKEN_THRESHOLD = 10000
+
+# Check for dev.config.yaml and override TOKEN_THRESHOLD if present
+config_path = 'dev.config.yaml'
+if os.path.exists(config_path):
+    with open(config_path, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+        TOKEN_THRESHOLD = config.get('token_threshold', TOKEN_THRESHOLD)
 
 # Setup OpenAI Client
 openai.api_key = os.getenv('OPENAI_API_KEY')
 if not openai.api_key:
     raise ValueError("OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
 client = Client()
+
+def estimate_token_count(text):
+    """Estimate the number of tokens in a given text."""
+    # Roughly estimate token count. This is a simplification.
+    return len(text.split())
 
 def get_staged_files():
     """Get a list of staged files."""
@@ -53,6 +69,19 @@ def generate_commit_message(diff):
     messages is greatly appreciated. Thank you for assisting in maintaining a 
     coherent and informative commit history.
     """
+
+    # Estimate token count for the operation
+    total_tokens = sum(map(estimate_token_count, [role, instructions, courtesy, diff]))
+    print(f"Estimated token count for this operation: {total_tokens}")
+    print("API Provider: OpenAI")
+    print("Model: gpt-4")
+
+    # Check if the estimated token count exceeds the threshold
+    if total_tokens > TOKEN_THRESHOLD:
+        confirmation = input(f"The estimated token count ({total_tokens}) exceeds the threshold of {TOKEN_THRESHOLD}. Do you want to proceed? (y/n): ")
+        if confirmation.lower() not in ["y", "yes"]:
+            print("Operation canceled by the user.")
+            return None
 
     response = client.chat.completions.create(
         model="gpt-4",
