@@ -1,5 +1,5 @@
 {
-    "scripts": {
-        "dev-build" : "cd test/nuxt && pnpm install"
-    }
+  "scripts": {
+    "dev-build": "cd test/nuxt && pnpm install"
+  }
 }
